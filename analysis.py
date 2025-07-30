@@ -35,8 +35,8 @@ def load_and_prepare_real_data(filepath='data/city_day.csv'):
     df_delhi.rename(columns={'PM2.5': 'pm25', 'NO2': 'no2'}, inplace=True)
     
     # Forward-fill missing values - a reasonable assumption for daily data.
-    df_delhi['pm25'].ffill(inplace=True)
-    df_delhi['no2'].ffill(inplace=True)
+    df_delhi['pm25'] = df_delhi['pm25'].ffill()
+    df_delhi['no2'] = df_delhi['no2'].ffill()
     
     # Drop any rows that still have NaNs (likely at the start).
     df_delhi.dropna(inplace=True)
@@ -120,7 +120,7 @@ def create_visualizations(df, phase='Phase 1'):
     during_pm25 = mean_data.loc[mean_data['period'] == 'During Policy', 'pm25'].iloc[0]
     pct_change = ((during_pm25 - control_pm25) / control_pm25) * 100
     
-    sns.barplot(data=mean_data, x='period', y='pm25', palette=['#ff9999', '#66b3ff'], ax=ax1)
+    sns.barplot(data=mean_data, x='period', y='pm25', hue='period', palette=['#ff9999', '#66b3ff'], ax=ax1, legend=False)
     
     ax1.set_title(f'Impact of Odd-Even {phase} on Average PM2.5', fontsize=20, pad=20, weight='bold')
     ax1.set_ylabel('Average PM2.5 Concentration (µg/m³)', fontsize=14)
@@ -143,7 +143,7 @@ def create_visualizations(df, phase='Phase 1'):
     # --- Viz 2: Distribution Deep Dive (Violin Plot) ---
     fig2, ax2 = plt.subplots(figsize=(12, 8))
     
-    sns.violinplot(data=comp_df, x='period', y='pm25', ax=ax2, inner='quartile', palette=['#ff9999', '#66b3ff'])
+    sns.violinplot(data=comp_df, x='period', y='pm25', hue='period', ax=ax2, inner='quartile', palette=['#ff9999', '#66b3ff'], legend=False)
     sns.stripplot(data=comp_df, x='period', y='pm25', ax=ax2, color='black', alpha=0.3, jitter=0.1)
     
     ax2.set_title(f'PM2.5 Distribution: Policy vs. Control ({phase})', fontsize=20, pad=20, weight='bold')
@@ -152,21 +152,35 @@ def create_visualizations(df, phase='Phase 1'):
     plt.tight_layout()
     plt.show()
 
-    # --- Viz 3: Day-by-Day Calendar Heatmap ---
+    # --- Viz 3: Day-by-Day Calendar Heatmap (ROBUST FIX) ---
     control_series = df[df['policy_status'] == f'Control {phase}']['pm25']
     during_series = df[df['policy_status'] == f'During {phase}']['pm25']
     
-    fig3, axes = plt.subplots(2, 1, figsize=(10, 5), sharex=True)
-    
-    calmap.yearplot(control_series, year=control_series.index.year[0], ax=axes[0], cmap='YlOrRd')
-    axes[0].set_title(f'Control Year: Daily PM2.5 ({control_series.index.year[0]})', fontsize=16)
-    
-    calmap.yearplot(during_series, year=during_series.index.year[0], ax=axes[1], cmap='YlOrRd')
-    axes[1].set_title(f'Policy Year: Daily PM2.5 ({during_series.index.year[0]})', fontsize=16)
-    
-    fig3.suptitle(f'Daily Pollution Calendar: {phase} vs. Control', fontsize=20, weight='bold', y=1.05)
-    plt.tight_layout()
-    plt.show()
+    if control_series.empty or during_series.empty:
+        print("\n[INFO] Skipping calendar heatmap: Not enough data for one or both periods.")
+    else:
+        # Create a full year series for calmap to prevent errors.
+        control_year = control_series.index.year.unique()[0]
+        during_year = during_series.index.year.unique()[0]
+        
+        full_control_year = pd.Series(np.nan, index=pd.date_range(start=f'1/1/{control_year}', end=f'12/31/{control_year}', freq='D'))
+        full_during_year = pd.Series(np.nan, index=pd.date_range(start=f'1/1/{during_year}', end=f'12/31/{during_year}', freq='D'))
+        
+        # Fill the full year series with our actual data.
+        control_series_full = full_control_year.fillna(control_series)
+        during_series_full = full_during_year.fillna(during_series)
+        
+        fig3, axes = plt.subplots(2, 1, figsize=(10, 5), sharex=True)
+        
+        calmap.yearplot(control_series_full, ax=axes[0], cmap='YlOrRd')
+        axes[0].set_title(f'Control Year: Daily PM2.5 ({control_year})', fontsize=16)
+        
+        calmap.yearplot(during_series_full, ax=axes[1], cmap='YlOrRd')
+        axes[1].set_title(f'Policy Year: Daily PM2.5 ({during_year})', fontsize=16)
+        
+        fig3.suptitle(f'Daily Pollution Calendar: {phase} vs. Control', fontsize=20, weight='bold', y=1.05)
+        plt.tight_layout()
+        plt.show()
 
 # --- Main Execution Block ---
 if __name__ == "__main__":
