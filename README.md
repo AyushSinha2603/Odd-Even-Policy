@@ -38,19 +38,19 @@ The analysis reveals a clear change in the daily pollution rhythm.
 
 This heatmap visualizes PM2.5 concentration by hour of the day across the study period. The 'Before' period likely shows intense red bands during morning and evening rush hours. The key insight from the 'During' policy period is a potential lightening of these bands, indicating that the policy successfully blunted the worst pollution spikes.
 
-![Hourly PM2.5 Heatmap](visualizations/heatMap.png)
+![Hourly PM2.5 Heatmap](visualisations/heatMap.png)
 
 ### **2. The 24-Hour PM2.5 Cycle**
 
 This plot averages the PM2.5 levels for each of the 24 hours of the day, comparing the cycles before and during the Odd-Even policy. The 'During' policy line is expected to be consistently lower, especially during the **8 AM - 11 AM** and **5 PM - 8 PM** windows, which correspond to peak traffic times. This provides strong evidence that the policy directly impacted traffic-related emissions.
 
-![24-Hour PM2.5 Cycle](visualizations/24hour_PM2.5.png)
+![24-Hour PM2.5 Cycle](visualisations/24hour_PM2.5.png)
 
 ### **3. Rush Hour vs. Off-Peak Analysis**
 
 This visualization directly compares the average PM2.5 levels during rush hours versus off-peak hours. The most significant finding here would be a much larger percentage drop in pollution during **rush hours** in the 'During' policy phase. This demonstrates that the policy was most effective when it was needed most—when traffic is typically at its worst.
 
-![Rush Hour vs. Off-Peak PM2.5](visualizations/rushHour_s_offPeak.png)
+![Rush Hour vs. Off-Peak PM2.5](visualisations/rushHour_s_offPeak.png)
 
 ---
 
